@@ -27,21 +27,13 @@ GLFont::GLFont(char* font, int windowWidth, int windowHeight) :
 
     setFont(font);
 
-    //setPixelSize(36); // default pixel size
-
     _sx = 2.0 / _windowWidth;
     _sy = 2.0 / _windowHeight;
     
-    // Set up model view projection matrices
-    //_projection = glm::ortho(-800.0f, 800.0f, -600.0f, 600.0f, 0.1f, 100.0f);
-    //_projection = glm::ortho(-200.0f, 200.0f, -200.0f, 200.0f, 0.1f, 100.0f);
-    // Since we are dealing with 2D text, we can use an ortho projection matrix 
-    _projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.0f);
-    //_projection = glm::perspective(45.0f, (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
-    //_projection = glm::perspective(45.0f,           // Field of view (in degrees)
-    //                               800.0f / 600.0f, // Aspect ratio 
-    //                               0.1f,            // Near clipping distance
-    //                               100.0f);         // Far clipping 
+    // Since we are dealing with 2D text, we will use an orthographic projection matrix 
+    _projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, // View: left, right, bottom, top (we are using normalized coords)
+                             0.1f,                     // Near clipping distance
+                             100.0f);                  // Far clipping distance
 
     _view = glm::lookAt(glm::vec3(0, 0, 1),  // Camera position in world space
                         glm::vec3(0, 0, 0),  // look at origin
@@ -59,34 +51,19 @@ void GLFont::init() {
     _programId = glCreateProgram();
     GLUtils::loadShader("shaders\\fontVertex.shader", GL_VERTEX_SHADER, _programId);
     GLUtils::loadShader("shaders\\fontFragment.shader", GL_FRAGMENT_SHADER, _programId);
-    
+
     glUseProgram(_programId);
 
     // Create and bind the vertex array object
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
 
-    // Create the texture
-    setPixelSize(48);
+    // Set pixel size and create the texture
+    setPixelSize(48); // default pixel size
+
     glActiveTexture(GL_TEXTURE0 + _texIds[_pixelSize]);
     //glGenTextures(1, &_texIds[_pixelSize]);
     glBindTexture(GL_TEXTURE_2D, _texIds[_pixelSize]);
-
-    //// Get shader handles
-    //_uniformTextureHandle = glGetUniformLocation(_programId, "tex");
-    //_uniformTextColorHandle = glGetUniformLocation(_programId, "textColor");
-    //_uniformMVPHandle = glGetUniformLocation(_programId, "mvp");
-
-    //glUniform1i(_uniformTextureHandle, 0);
-    //glUniform4fv(_uniformTextColorHandle, 1, glm::value_ptr(_textColor));
-    //glUniformMatrix4fv(_uniformMVPHandle, 1, GL_FALSE, glm::value_ptr(_mvp));
-
-    //// Set texture parameters
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     // Create the vertex buffer object
     glGenBuffers(1, &_vbo);
@@ -169,7 +146,8 @@ void GLFont::glPrint(const char *text, float x, float y, float viewWidth, float 
                                chars[*p].xOffset + chars[*p].bitmapWidth / _atlasWidth, 
                                chars[*p].bitmapHeight / _atlasHeight));
     }
-
+    
+    // Send the data to the gpu
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Point), 0);
     glBufferData(GL_ARRAY_BUFFER, coords.size() * sizeof(Point), coords.data(), GL_DYNAMIC_DRAW);
     glDrawArrays(GL_TRIANGLES, 0, coords.size());

@@ -12,14 +12,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\GLFont.h" />
-    <ClInclude Include="TestWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="include\GLUtils\GLUtils.cpp" />
     <ClCompile Include="include\GLWindow\GLWindow.cpp" />
-    <ClCompile Include="main.cpp" />
     <ClCompile Include="src\GLFont.cpp" />
-    <ClCompile Include="TestWindow.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\TestWindow.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{45547B12-3142-401A-A315-A9F9817A0FC2}</ProjectGuid>

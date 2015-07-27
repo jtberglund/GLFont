@@ -24,9 +24,6 @@
     <ClInclude Include="src\GLFont.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TestWindow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\GLFont.cpp">
@@ -38,10 +35,10 @@
     <ClCompile Include="include\GLWindow\GLWindow.cpp">
       <Filter>Source Files\GLWindow</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TestWindow.cpp">
+    <ClCompile Include="src\TestWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
