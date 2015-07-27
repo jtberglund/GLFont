@@ -1,5 +1,6 @@
 #include "GLFont.h"
 #include "GLUtils.h"
+#include "FontAtlas.h"
 
 #include <stdio.h>
 #include <vector>
@@ -44,7 +45,9 @@ GLFont::GLFont(char* font, int windowWidth, int windowHeight) :
     recalculateMVP();
 }
 
-GLFont::~GLFont() {}
+GLFont::~GLFont() {
+    _fontAtlas.clear();
+}
 
 void GLFont::init() {
     // Load the shaders
@@ -61,14 +64,24 @@ void GLFont::init() {
     // Set pixel size and create the texture
     setPixelSize(48); // default pixel size
 
-    glActiveTexture(GL_TEXTURE0 + _texIds[_pixelSize]);
-    //glGenTextures(1, &_texIds[_pixelSize]);
-    glBindTexture(GL_TEXTURE_2D, _texIds[_pixelSize]);
+    // Get shader handles
+    _uniformTextureHandle = glGetUniformLocation(_programId, "tex");
+    _uniformTextColorHandle = glGetUniformLocation(_programId, "textColor");
+    _uniformMVPHandle = glGetUniformLocation(_programId, "mvp");
+
+    GLuint curTex = _fontAtlas[_curPixSize]->getTexId(); // get texture ID for this pixel size
+
+    glActiveTexture(GL_TEXTURE0 + curTex);
+    glBindTexture(GL_TEXTURE_2D, curTex);
+
+    // Set our uniforms
+    glUniform1i(_uniformTextureHandle, curTex);
+    glUniform4fv(_uniformTextColorHandle, 1, glm::value_ptr(_textColor));
+    glUniformMatrix4fv(_uniformMVPHandle, 1, GL_FALSE, glm::value_ptr(_mvp));
 
     // Create the vertex buffer object
     glGenBuffers(1, &_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    //glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), 0);
     
     glUseProgram(0);
 
@@ -93,14 +106,20 @@ void GLFont::glPrint(const char *text, float x, float y, float viewWidth, float 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glActiveTexture(GL_TEXTURE0 + _texIds[_pixelSize]);
+    GLuint curTex = _fontAtlas[_curPixSize]->getTexId();
+    int atlasWidth = _fontAtlas[_curPixSize]->getAtlasWidth();
+    int atlasHeight = _fontAtlas[_curPixSize]->getAtlasHeight();
+
+    glActiveTexture(GL_TEXTURE0 + curTex);
 
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
-    glBindTexture(GL_TEXTURE_2D, _texIds[_pixelSize]);
-    glUniform1i(_uniformTextureHandle, _texIds[_pixelSize]);
+    glBindTexture(GL_TEXTURE_2D, curTex);
+    glUniform1i(_uniformTextureHandle, curTex);
 
     glEnableVertexAttribArray(0);
+
+    FontAtlas::Character* chars = _fontAtlas[_curPixSize]->getCharInfo();
 
     for(const char *p = text; *p; ++p) {
         float x2 = x + chars[*p].bitmapLeft * _sx; // scaled x coord
@@ -123,28 +142,28 @@ void GLFont::glPrint(const char *text, float x, float y, float viewWidth, float 
 
         coords.push_back(Point(x2 + w,
                                -y2,
-                               chars[*p].xOffset + chars[*p].bitmapWidth / _atlasWidth, 
+                               chars[*p].xOffset + chars[*p].bitmapWidth / atlasWidth,
                                0));
 
         coords.push_back(Point(x2,
                                -y2 - h, 
                                chars[*p].xOffset, 
-                               chars[*p].bitmapHeight / _atlasHeight));
+                               chars[*p].bitmapHeight / atlasHeight));
 
         coords.push_back(Point(x2 + w, 
                                -y2,
-                               chars[*p].xOffset + chars[*p].bitmapWidth / _atlasWidth, 
+                               chars[*p].xOffset + chars[*p].bitmapWidth / atlasWidth,
                                0));
 
         coords.push_back(Point(x2,
                                -y2 - h, 
                                chars[*p].xOffset, 
-                               chars[*p].bitmapHeight / _atlasHeight));
+                               chars[*p].bitmapHeight / atlasHeight));
 
         coords.push_back(Point(x2 + w, 
                                -y2 - h, 
-                               chars[*p].xOffset + chars[*p].bitmapWidth / _atlasWidth, 
-                               chars[*p].bitmapHeight / _atlasHeight));
+                               chars[*p].xOffset + chars[*p].bitmapWidth / atlasWidth,
+                               chars[*p].bitmapHeight / atlasHeight));
     }
     
     // Send the data to the gpu
@@ -281,91 +300,14 @@ void GLFont::calculateAlignment(const unsigned char* text, float &x) {
 }
 
 void GLFont::setPixelSize(int size) {
-    if(size > 64) // we do not support > 64 pixels at the moment
-        size = 64;
+    _curPixSize = size;
 
-    _pixelSize = size;
-
-    // Set pixel size to 48 x 48 & load character
-    _error = FT_Set_Pixel_Sizes(_face,       // font face handle
-                                0,           // pixel width  (value of 0 means 'same as the other')
-                                _pixelSize); // pixel height (value of 0 means 'same as the other')
+    // Create texture atlas for characters of this pixel size if there isn't already one
+    if(!_fontAtlas[_curPixSize])
+        _fontAtlas[_curPixSize] = std::shared_ptr<FontAtlas>(new FontAtlas(_face, _curPixSize));
 
     if(_error)
         throw std::exception("Failed to size font (are you using a fixed-size font?)");
-
-    // Here we will load an atlas texture (combined texture of all character glyphs) for the font at this pixel size
-    FT_GlyphSlot slot = _face->glyph;
-    int width = 0; // width of the texture
-    int height = 0; // height of the texture
-
-    // Main char set (32 - 128)
-    for(int i = 32; i < 128; ++i) {
-        if(FT_Load_Char(_face, i, FT_LOAD_RENDER)) {
-            fprintf(stderr, "Loading character %c failed!\n", i);
-            continue; // try next character
-        }
-
-        width += slot->bitmap.width + 2; // add the width of this glyph to our texture width
-        // Note: We add 2 pixels of blank space between glyphs for padding - this helps reduce texture bleeding
-        //       that can occur with antialiasing
-
-        height = std::max(height, (int)slot->bitmap.rows);
-    }
-
-    _atlasWidth = width;
-    _atlasHeight = height;
-
-    glGenTextures(1, &_texIds[_pixelSize]);
-    glActiveTexture(GL_TEXTURE0 + _texIds[_pixelSize]);
-    glBindTexture(GL_TEXTURE_2D, _texIds[_pixelSize]);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-    // Get shader handles
-    _uniformTextureHandle = glGetUniformLocation(_programId, "tex");
-    _uniformTextColorHandle = glGetUniformLocation(_programId, "textColor");
-    _uniformMVPHandle = glGetUniformLocation(_programId, "mvp");
-
-    glUniform1i(_uniformTextureHandle, _texIds[_pixelSize]);
-    glUniform4fv(_uniformTextColorHandle, 1, glm::value_ptr(_textColor));
-    glUniformMatrix4fv(_uniformMVPHandle, 1, GL_FALSE, glm::value_ptr(_mvp));
-
-    // Set texture parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-    // Create an empty texture with the correct dimensions
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
-
-    int texPos = 0; // texture offset
-
-    for(int i = 32; i < 128; ++i) {
-        if(FT_Load_Char(_face, i, FT_LOAD_RENDER))
-            continue;
-
-        // Add this character glyph to our texture
-        glTexSubImage2D(GL_TEXTURE_2D, 0, texPos, 0, 1, slot->bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, (char)0); // padding
-        glTexSubImage2D(GL_TEXTURE_2D, 0, texPos, 0, slot->bitmap.width, slot->bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, slot->bitmap.buffer);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, texPos, 0, 1, slot->bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, (char)0); // padding
-
-        // Store glyph info in our char array for this pixel size
-        chars[i].advanceX = slot->advance.x >> 6;
-        chars[i].advanceY = slot->advance.y >> 6;
-
-        chars[i].bitmapWidth = slot->bitmap.width;
-        chars[i].bitmapHeight = slot->bitmap.rows;
-
-        chars[i].bitmapLeft = slot->bitmap_left;
-        chars[i].bitmapTop = slot->bitmap_top;
-
-        chars[i].xOffset = (float)texPos / (float)width;
-        
-        // Increase texture offset
-        texPos += slot->bitmap.width + 2;
-    }
 }
 
 void GLFont::setWindowSize(int width, int height) {
@@ -375,10 +317,6 @@ void GLFont::setWindowSize(int width, int height) {
     // Recalculate sx and sy
     _sx = 2.0 / _windowWidth;
     _sy = 2.0 / _windowHeight;
-
-    //// Recalculate projection matrix
-    //_projection = glm::perspective(45.0f, (float)_windowWidth / (float)_windowHeight, 0.1f, 100.0f);
-    //recalculateMVP();
 }
 
 void GLFont::rotate(float degrees, float x, float y, float z) {

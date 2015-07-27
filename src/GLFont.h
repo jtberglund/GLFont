@@ -5,6 +5,7 @@
 #include FT_FREETYPE_H
 #include "glm\glm.hpp"
 
+#include <memory> // for use of shared_ptr
 #include <map>
 
 #ifndef PI
@@ -19,18 +20,10 @@
 #define DEG_TO_RAD PI / 180.0
 #endif
 
+class FontAtlas;
+
 class GLFont {
 public:
-    struct CharInfo {
-        float advanceX;
-        float advanceY;
-        float bitmapWidth;
-        float bitmapHeight;
-        float bitmapLeft;
-        float bitmapTop;
-        float xOffset; // x offset of glyph in texture coordinates
-    } chars[128];
-
     struct Point {
         GLfloat x; // x offset in window coordinates
         GLfloat y; // y offset in window coordinates
@@ -87,11 +80,13 @@ private:
     GLuint _programId;
     GLuint _vao; 
     GLuint _vbo;
-    std::map<int, GLuint> _texIds;
-    GLuint _texId;
+
     GLint _uniformTextureHandle;
     GLint _uniformTextColorHandle;
     GLint _uniformMVPHandle;
+
+    // Holds texture atlases for different character pixel sizes
+    std::map<int, std::shared_ptr<FontAtlas>> _fontAtlas;
 
     // Window dimensions
     int _windowWidth;
@@ -115,7 +110,7 @@ private:
     glm::vec4 _textColor; // RGBA value we will use to color the font (0.0 - 1.0)
     FontAlignment _alignment;
     bool _isInitialized;
-    int _pixelSize;
+    int _curPixSize;
     
     // Used for debugging opengl only
     inline void getError() {

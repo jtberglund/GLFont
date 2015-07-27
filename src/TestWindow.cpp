@@ -23,9 +23,11 @@ void TestWindow::init() {
 }
 
 void TestWindow::render() {
+    _font->setPixelSize(250);
     _font->glPrint("Hello world!", 0.5 * getWidth(), 0.5 * getHeight(), getWidth(), getHeight());
     _font->setAlignment(GLFont::FontAlignment::LeftAligned);
-    _font->glPrint("Testing", 0, 200, getWidth(), getHeight());
+    _font->setPixelSize(48);
+    _font->glPrint("Testing", 0, 25, getWidth(), getHeight());
 }
 
 void TestWindow::update() {}
