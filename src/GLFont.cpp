@@ -36,7 +36,7 @@ GLFont::GLFont(char* font, int windowWidth, int windowHeight) :
                              0.1f,                     // Near clipping distance
                              100.0f);                  // Far clipping distance
 
-    _view = glm::lookAt(glm::vec3(0, 0, 1),  // Camera position in world space
+    _view = glm::lookAt(glm::vec3(0, 0, 1),  // Camera position in world space (doesn't really apply when using an ortho projection matrix)
                         glm::vec3(0, 0, 0),  // look at origin
                         glm::vec3(0, 1, 0)); // Head is up (set to 0, -1, 0 to look upside down)
 
@@ -61,7 +61,7 @@ void GLFont::init() {
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
 
-    // Set pixel size and create the texture
+    // Set default pixel size and create the texture
     setPixelSize(48); // default pixel size
 
     // Get shader handles
@@ -88,7 +88,7 @@ void GLFont::init() {
     _isInitialized = true;
 }
 
-void GLFont::glPrint(const char *text, float x, float y, float viewWidth, float viewHeight) {
+void GLFont::glPrint(const char *text, float x, float y) {
     if(!_isInitialized)
         throw std::exception("Error: you must first initialize GLFont.");
 
@@ -124,11 +124,19 @@ void GLFont::glPrint(const char *text, float x, float y, float viewWidth, float 
     for(const char *p = text; *p; ++p) {
         float x2 = x + chars[*p].bitmapLeft * _sx; // scaled x coord
         float y2 = -y - chars[*p].bitmapTop * _sy; // scaled y coord
-        float w = chars[*p].bitmapWidth * _sx; // scaled width of character
-        float h = chars[*p].bitmapHeight * _sy; // scaled height of character
+        float w = chars[*p].bitmapWidth * _sx;     // scaled width of character
+        float h = chars[*p].bitmapHeight * _sy;    // scaled height of character
+
+        // Calculate kerning value
+        FT_Vector kerning;
+        FT_Get_Kerning(_face,              // font face handle
+                       *p,                 // left glyph
+                       *(p+1),             // right glyph
+                       FT_KERNING_DEFAULT, // kerning mode
+                       &kerning);          // variable to store kerning value
 
         // Advance cursor to start of next character
-        x += chars[*p].advanceX * _sx;
+        x += (chars[*p].advanceX + (kerning.x >> 6)) * _sx;
         y += chars[*p].advanceY * _sy;
 
         // Skip glyphs with no pixels (e.g. spaces)

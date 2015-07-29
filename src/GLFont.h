@@ -50,7 +50,7 @@ public:
 
     void setWindowSize(int width, int height);
 
-    // Degrees to rotate & axis on which to rotate (e.g. 0 1 0 to rotate on the y axis)
+    // Degrees to rotate & axis on which to rotate (e.g. (90 0 1 0) to rotate 90deg on the y axis)
     void rotate(float degrees, float x, float y, float z);
     // NOTE: This does not change the pixel size. Use setPixelSize() to scale evenly
     void scale(float x, float y, float z);
@@ -69,7 +69,7 @@ public:
 
     // Print the specified text on the screen starting at coords x, y
     // NOTE: params x and y should be x and y offsets in **window** coordinates (0, 0 is at the top left corner)
-    void glPrint(const char *text, float x, float y, float viewWidth, float viewHeight);
+    void glPrint(const char *text, float x, float y);
 
 private:
     FT_Error _error;

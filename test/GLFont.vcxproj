@@ -11,16 +11,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\FontAtlas.h" />
-    <ClInclude Include="src\GLFont.h" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClCompile Include="..\src\FontAtlas.cpp" />
+    <ClCompile Include="..\src\GLFont.cpp" />
     <ClCompile Include="include\GLUtils\GLUtils.cpp" />
     <ClCompile Include="include\GLWindow\GLWindow.cpp" />
-    <ClCompile Include="src\FontAtlas.cpp" />
-    <ClCompile Include="src\GLFont.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\TestWindow.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\FontAtlas.h" />
+    <ClInclude Include="..\src\GLFont.h" />
+    <ClInclude Include="src\TestWindow.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{45547B12-3142-401A-A315-A9F9817A0FC2}</ProjectGuid>
@@ -60,7 +61,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>src\;include\GLWindow;include\GLUtils;include\glm;include\glew\include;include\glfw\include;include\freetype\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src\;include\GLWindow;include\GLUtils;include\glm;include\glew\include;include\glfw\include;include\freetype\include;..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <TargetMachine>MachineX86</TargetMachine>

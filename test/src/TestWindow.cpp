@@ -17,17 +17,15 @@ void TestWindow::start() {
 }
 
 void TestWindow::init() {
-    _font = new GLFont("fonts\\Atom\\13_5Atom_Sans_Regular.ttf", getWidth(), getHeight());
+    _font = new GLFont("fonts\\13_5Atom_Sans_Regular.ttf", getWidth(), getHeight());
     _font->init();
     _font->setColor(0.89, 0.26, 0.3, 0.9);
 }
 
 void TestWindow::render() {
-    _font->setPixelSize(250);
-    _font->glPrint("Hello world!", 0.5 * getWidth(), 0.5 * getHeight(), getWidth(), getHeight());
-    _font->setAlignment(GLFont::FontAlignment::LeftAligned);
-    _font->setPixelSize(48);
-    _font->glPrint("Testing", 0, 25, getWidth(), getHeight());
+    _font->setAlignment(GLFont::FontAlignment::CenterAligned);
+    _font->setPixelSize(64);
+    _font->glPrint("Hello world!", 0.5 * getWidth(), 0.5 * getHeight());
 }
 
 void TestWindow::update() {}

@@ -72,7 +72,7 @@ void GLWindow::run() {
         }
 
         // Render scene
-        glClearColor(0.0, 0.2, 0.2, 1.0);
+        glClearColor(0.0, 0.0, 0.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT);
 
         update();
@@ -100,7 +100,6 @@ void resizeCallback(GLFWwindow* window, int width, int height) {
 
 void framebufferCallback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
-    //glOrtho(0.0, width, height, 0.0, -1.0, 1.0);
 }
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {

@@ -19,19 +19,14 @@
     <Filter Include="Source Files\GLWindow">
       <UniqueIdentifier>{6bfe2b71-d1b4-4098-b0b5-08cad7f6f3ee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\GLFont">
+      <UniqueIdentifier>{bba29447-c9a9-4db7-ab91-2ff44549ecd1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\GLFont">
+      <UniqueIdentifier>{dc8a53f5-8e81-4514-88f3-a051267b6384}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\GLFont.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\FontAtlas.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\GLFont.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="include\GLUtils\GLUtils.cpp">
       <Filter>Source Files\GLUtils</Filter>
     </ClCompile>
@@ -44,8 +39,22 @@
     <ClCompile Include="src\TestWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\FontAtlas.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\src\FontAtlas.cpp">
+      <Filter>Source Files\GLFont</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\GLFont.cpp">
+      <Filter>Source Files\GLFont</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\TestWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\FontAtlas.h">
+      <Filter>Header Files\GLFont</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\GLFont.h">
+      <Filter>Header Files\GLFont</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
