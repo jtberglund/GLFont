@@ -24,6 +24,18 @@ class FontAtlas;
 
 class GLFont {
 public:
+    enum FontFlags {
+        LeftAligned      = 1 << 1,
+        RightAligned     = 1 << 2,
+        CenterAligned    = 1 << 3,
+        WordWrap         = 1 << 4,
+        Underlined       = 1 << 5,
+        Bold             = 1 << 6,
+        Italic           = 1 << 7,
+        Indented         = 1 << 8,
+        HorizontalLayout = 1 << 9
+    };
+
     struct Point {
         GLfloat x; // x offset in window coordinates
         GLfloat y; // y offset in window coordinates
@@ -35,12 +47,6 @@ public:
         Point(float x, float y, float s, float t) :
             x(x), y(y), s(s), t(t) 
         {}
-    };
-
-    enum FontAlignment {
-        LeftAligned,
-        RightAligned,
-        CenterAligned
     };
 
     GLFont(char* font, int windowWidth, int windowHeight);
@@ -58,18 +64,24 @@ public:
     // Setters
     void setFont(char* font); // points to font family file (.ttf)
     void setColor(float r, float b, float g, float a); // RGBA values are 0 - 1.0
-    void setAlignment(FontAlignment alignment);
+    void setAlignment(FontFlags alignment);
     void setPixelSize(int size);
+    void setIndentation(int pixels);
+    void setFontFlags(int flags);
+    void appendFontFlags(int flags);
 
     // Getters
     char* getFont();
     glm::vec4 getColor();
-    FontAlignment getAlignment();
+    FontFlags getAlignment();
     float getRotation();
+    int getIndentation();
+    int getFontFlags();
 
     // Print the specified text on the screen starting at coords x, y
     // NOTE: params x and y should be x and y offsets in **window** coordinates (0, 0 is at the top left corner)
-    void glPrint(const char *text, float x, float y);
+    void drawString(const char *text, float x, float y);
+    void drawString(const char* text, float width, float height, float x, float y);
 
 private:
     FT_Error _error;
@@ -87,6 +99,9 @@ private:
 
     // Holds texture atlases for different character pixel sizes
     std::map<int, std::shared_ptr<FontAtlas>> _fontAtlas;
+
+    // Currently enabled settings set via FontFlags
+    int _flags;
 
     // Window dimensions
     int _windowWidth;
@@ -108,9 +123,10 @@ private:
 
     char* _font; // file path to font file
     glm::vec4 _textColor; // RGBA value we will use to color the font (0.0 - 1.0)
-    FontAlignment _alignment;
+    FontFlags _alignment;
     bool _isInitialized;
     int _curPixSize;
+    int _indentationPix;
     
     // Used for debugging opengl only
     inline void getError() {
@@ -122,7 +138,7 @@ private:
     // Compile shader from file
     void loadShader(char* shaderSource, GLenum shaderType);
     // Calculate offset needed for center- or left-aligned text
-    void calculateAlignment(const unsigned char* text, float &x);
+    void calculateAlignment(const char* text, float &x);
 
     void recalculateMVP();
 };

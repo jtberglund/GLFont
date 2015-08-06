@@ -16,9 +16,10 @@ GLFont::GLFont(char* font, int windowWidth, int windowHeight) :
   _windowWidth(windowWidth),
   _windowHeight(windowHeight),
   _isInitialized(false),
-  _alignment(FontAlignment::CenterAligned),
+  _alignment(FontFlags::CenterAligned),
   _textColor(0, 0, 0, 1),
-  _uniformMVPHandle(-1)
+  _uniformMVPHandle(-1),
+  _indentationPix(0)
 {
     // Initialize FreeType
     _error = FT_Init_FreeType(&_ft);
@@ -27,6 +28,9 @@ GLFont::GLFont(char* font, int windowWidth, int windowHeight) :
     }
 
     setFont(font);
+
+    // Intially enabled flags
+    _flags = FontFlags::CenterAligned | FontFlags::WordWrap;
 
     _sx = 2.0 / _windowWidth;
     _sy = 2.0 / _windowHeight;
@@ -88,7 +92,50 @@ void GLFont::init() {
     _isInitialized = true;
 }
 
-void GLFont::glPrint(const char *text, float x, float y) {
+void GLFont::drawString(const char* text, float width, float height, float x, float y) {
+    if(!_isInitialized)
+        throw std::exception("Error: you must first initialize GLFont.");
+
+    FT_GlyphSlot slot = _face->glyph;
+    FontAtlas::Character* chars = _fontAtlas[_curPixSize]->getCharInfo();
+    int curLineNum = 0;
+    int indent = 0;
+    std::string curLine = "";
+    int curLineWidth = 0;
+
+    if(_flags & FontFlags::Indented)
+        indent = _indentationPix ? _indentationPix : (_face->size->metrics.max_advance >> 6);
+
+    // Break the text up into lines that fit within the specified width & height
+    const char* p = text;
+    while(*p) {
+        // If the current line starts with a space, skip to the next character
+        if((*p == ' ' && curLine.size() == 0)) {
+            ++p;
+            continue;
+        }
+        else if(*p == '\t') {
+            ++p;
+            continue;
+        }
+        // Append character to the current line
+        curLine += *p;
+        curLineWidth += chars[*p].advanceX;
+        ++p;
+
+        // If we are going to go past the max width on the next character, 
+        // draw this line and reset pen position at begining of next line
+        if(curLineWidth > width - slot->bitmap.width  - indent || !*p) {
+            drawString(curLine.c_str(), x + indent, y + (_face->size->metrics.height >> 6) * curLineNum);
+            ++curLineNum;
+            curLineWidth = 0;
+            curLine = "";
+            indent = 0;
+        }
+    }
+}
+
+void GLFont::drawString(const char *text, float x, float y) {
     if(!_isInitialized)
         throw std::exception("Error: you must first initialize GLFont.");
 
@@ -96,7 +143,7 @@ void GLFont::glPrint(const char *text, float x, float y) {
     std::vector<Point> coords;
 
     // Align text
-    calculateAlignment((const unsigned char*)text, x);
+    calculateAlignment(text, x);
 
     // Normalize window coordinates
     x = -1 + x * _sx;
@@ -188,59 +235,24 @@ void GLFont::glPrint(const char *text, float x, float y) {
     glUseProgram(0);
 }
 
-void GLFont::loadShader(char* shaderSource, GLenum shaderType) {
-    GLuint shaderId = glCreateShader(shaderType);
+void GLFont::setFontFlags(int flags) {
+    _flags = flags;
+}
 
-    GLint result = GL_FALSE; // compilation result
-    int infoLogLength; // length of info log
+void GLFont::appendFontFlags(int flags) {
+    _flags |= flags;
+}
 
-    std::ifstream shaderFile(shaderSource);
-    std::string shaderStr;
-    const char* shader;
+int GLFont::getFontFlags() {
+    return _flags;
+}
 
-    if(!shaderFile.is_open()) {
-        std::string error = "Error: could not read file ";
-        throw std::exception(error.append(shaderSource).c_str());
-    }
-    
-    // Read shader
-    std::string buffer;
-    while(std::getline(shaderFile, buffer)) {
-        shaderStr += buffer + "\n";
-    }
+void GLFont::setIndentation(int pixels) {
+    _indentationPix = pixels;
+}
 
-    shader = shaderStr.c_str();
-
-    // Compile shader
-    printf("Compiling shader\n");
-    glShaderSource(shaderId,        // Shader handle
-                   1,               // Number of files
-                   &shader,  // Shader source code
-                   NULL);           // NULL terminated string
-    glCompileShader(shaderId);
-
-    // Check shader
-    glGetShaderiv(shaderId, GL_COMPILE_STATUS, &result);
-    glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &infoLogLength);
-    std::vector<char> errorMessage(infoLogLength);
-    glGetShaderInfoLog(shaderId, infoLogLength, NULL, &errorMessage[0]);
-    fprintf(stdout, "%s\n", &errorMessage[0]);
-
-    // Link the program
-    fprintf(stdout, "Linking program\n");
-    glAttachShader(_programId, shaderId);
-    glLinkProgram(_programId);
-
-    // Check the program
-    glGetProgramiv(_programId, GL_LINK_STATUS, &result);
-    glGetProgramiv(_programId, GL_INFO_LOG_LENGTH, &infoLogLength);
-    std::vector<char> programErrorMessage(std::max(infoLogLength, int(1)));
-    glGetProgramInfoLog(_programId, infoLogLength, NULL, &programErrorMessage[0]);
-    fprintf(stdout, "%s\n", &programErrorMessage[0]);
-
-    glDeleteShader(shaderId);
-
-    shaderFile.close();
+int GLFont::getIndentation() {
+    return _indentationPix;
 }
 
 void GLFont::setColor(float r, float b, float g, float a) {
@@ -276,34 +288,33 @@ char* GLFont::getFont() {
     return _font;
 }
 
-void GLFont::setAlignment(GLFont::FontAlignment alignment) {
+void GLFont::setAlignment(GLFont::FontFlags alignment) {
     _alignment = alignment;
 }
 
-GLFont::FontAlignment GLFont::getAlignment() {
+GLFont::FontFlags GLFont::getAlignment() {
     return _alignment;
 }
 
-void GLFont::calculateAlignment(const unsigned char* text, float &x) {
-    if(_alignment == GLFont::FontAlignment::LeftAligned)
+void GLFont::calculateAlignment(const char* text, float &x) {
+    if(_alignment == GLFont::FontFlags::LeftAligned)
         return; // no need to calculate alignment
 
     FT_GlyphSlot slot = _face->glyph;
-    const unsigned char* p;
     float totalWidth = 0; // total width of the text to render in window space
    
     // Calculate total width
-    for(p = text; *p; ++p) {
+    for(const char* p = text; *p; ++p) {
         _error = FT_Load_Char(_face, *p, FT_LOAD_RENDER);
         if(_error)
             continue; // skip character
 
-        totalWidth += slot->bitmap.width;
+        totalWidth += slot->advance.x >> 6;
     }
 
-    if(_alignment == GLFont::FontAlignment::CenterAligned)
+    if(_alignment == GLFont::FontFlags::CenterAligned)
         x -= totalWidth / 2.0;
-    else if(_alignment == GLFont::FontAlignment::RightAligned)
+    else if(_alignment == GLFont::FontFlags::RightAligned)
         x -= totalWidth;
 }
 

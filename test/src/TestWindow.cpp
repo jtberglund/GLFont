@@ -20,12 +20,25 @@ void TestWindow::init() {
     _font = new GLFont("fonts\\13_5Atom_Sans_Regular.ttf", getWidth(), getHeight());
     _font->init();
     _font->setColor(0.89, 0.26, 0.3, 0.9);
+    _font->appendFontFlags(GLFont::FontFlags::Indented);
+    _font->setIndentation(100);
 }
 
 void TestWindow::render() {
-    _font->setAlignment(GLFont::FontAlignment::CenterAligned);
     _font->setPixelSize(64);
-    _font->glPrint("Hello world!", 0.5 * getWidth(), 0.5 * getHeight());
+    _font->setAlignment(GLFont::FontFlags::CenterAligned);
+    _font->drawString("Hello world!", 0.5 * getWidth(), 0.5 * getHeight());
+    _font->setPixelSize(36);
+    _font->setAlignment(GLFont::FontFlags::LeftAligned);
+    _font->drawString("Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+        "Aliquam quis pellentesque ligula, sed imperdiet tortor. Curabitur eleifend "
+        "facilisis orci, a accumsan felis hendrerit in. Duis nec fringilla quam. "
+        "Proin accumsan nulla lacus, vel posuere diam imperdiet et. Nunc sed dui "
+        "pellentesque, pretium justo vel, posuere justo. Integer mollis luctus "
+        "condimentum. Vivamus quis ex quis nisl convallis ullamcorper sed a urna. "
+        "Praesent eu libero dignissim, rutrum nisi in, euismod nibh. Phasellus est "
+        "felis, malesuada suscipit leo ac, varius egestas turpis.", 
+        getWidth() - 20, 100, 10, 0.6 * getHeight());
 }
 
 void TestWindow::update() {}
