@@ -21,16 +21,15 @@ void TestWindow::init() {
     _font->init();
     _font->setColor(0.89, 0.26, 0.3, 0.9);
     _font->appendFontFlags(GLFont::FontFlags::Indented);
-    _font->setIndentation(100);
 }
 
 void TestWindow::render() {
     _font->setPixelSize(64);
     _font->setAlignment(GLFont::FontFlags::CenterAligned);
     _font->drawString("Hello world!", 0.5 * getWidth(), 0.5 * getHeight());
-    _font->setPixelSize(36);
+    _font->setPixelSize(48);
     _font->setAlignment(GLFont::FontFlags::LeftAligned);
-    _font->drawString("Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+    _font->drawString("Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
         "Aliquam quis pellentesque ligula, sed imperdiet tortor. Curabitur eleifend "
         "facilisis orci, a accumsan felis hendrerit in. Duis nec fringilla quam. "
         "Proin accumsan nulla lacus, vel posuere diam imperdiet et. Nunc sed dui "
@@ -38,7 +37,7 @@ void TestWindow::render() {
         "condimentum. Vivamus quis ex quis nisl convallis ullamcorper sed a urna. "
         "Praesent eu libero dignissim, rutrum nisi in, euismod nibh. Phasellus est "
         "felis, malesuada suscipit leo ac, varius egestas turpis.", 
-        getWidth() - 20, 100, 10, 0.6 * getHeight());
+        10, 0.6 * getHeight(), getWidth() - 20, 100);
 }
 
 void TestWindow::update() {}

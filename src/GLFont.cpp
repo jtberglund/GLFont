@@ -92,58 +92,63 @@ void GLFont::init() {
     _isInitialized = true;
 }
 
-void GLFont::drawString(const char* text, float width, float height, float x, float y) {
+void GLFont::drawString(const char* text, float x, float y, float width, float height) {
     if(!_isInitialized)
         throw std::exception("Error: you must first initialize GLFont.");
 
-    FT_GlyphSlot slot = _face->glyph;
-    FontAtlas::Character* chars = _fontAtlas[_curPixSize]->getCharInfo();
-    int curLineNum = 0;
-    int indent = 0;
-    std::string curLine = "";
-    int curLineWidth = 0;
+    // Break the text into individual words
+    vector<string> words = splitText(text);
+    
+    vector<string> lines;
+    int widthRemaining = width;
+    int indent = (_flags & FontFlags::Indented) && !(_flags & FontFlags::CenterAligned) ? _curPixSize : 0;
 
-    if(_flags & FontFlags::Indented)
-        indent = _indentationPix ? _indentationPix : (_face->size->metrics.max_advance >> 6);
+    // Create lines from our text, each containing the maximum amount of words we can fit within the given width
+    string curLine = "";
+    for(string word : words) {
+        int wordWidth = calcWidth(word.c_str());
 
-    // Break the text up into lines that fit within the specified width & height
-    const char* p = text;
-    while(*p) {
-        // If the current line starts with a space, skip to the next character
-        if((*p == ' ' && curLine.size() == 0)) {
-            ++p;
-            continue;
-        }
-        else if(*p == '\t') {
-            ++p;
-            continue;
-        }
-        // Append character to the current line
-        curLine += *p;
-        curLineWidth += chars[*p].advanceX;
-        ++p;
-
-        // If we are going to go past the max width on the next character, 
-        // draw this line and reset pen position at begining of next line
-        if(curLineWidth > width - slot->bitmap.width  - indent || !*p) {
-            drawString(curLine.c_str(), x + indent, y + (_face->size->metrics.height >> 6) * curLineNum);
-            ++curLineNum;
-            curLineWidth = 0;
+        if(wordWidth > widthRemaining) {
+            // If we have passed the given width, add this line to our collection and start a new line
+            lines.push_back(curLine);
+            widthRemaining = width - wordWidth;
             curLine = "";
-            indent = 0;
+
+            // Start next line with current word
+            curLine.append(word.c_str());
         }
+        else {
+            // Otherwise, add this word to the current line
+            curLine.append(word.c_str());
+            widthRemaining = widthRemaining - (wordWidth);
+        }
+    }
+
+    // Add the last line to lines
+    if(curLine != "")
+        lines.push_back(curLine);
+
+    // Print each line, increasing the y value as we go
+    for(string line : lines) {
+        drawString(line.c_str(), x + indent, y);
+        y += (_face->size->metrics.height >> 6);
+        indent = 0;
     }
 }
 
-void GLFont::drawString(const char *text, float x, float y) {
+void GLFont::drawString(const char* text, float x, float y) {
     if(!_isInitialized)
         throw std::exception("Error: you must first initialize GLFont.");
 
     FT_GlyphSlot slot = _face->glyph;
     std::vector<Point> coords;
 
-    // Align text
-    calculateAlignment(text, x);
+    // Calculate alignment (if applicable)
+    int textWidth = calcWidth(text);
+    if(_alignment == FontFlags::CenterAligned)
+        x -= textWidth / 2.0;
+    else if(_alignment == FontFlags::RightAligned)
+        x -= textWidth;
 
     // Normalize window coordinates
     x = -1 + x * _sx;
@@ -235,6 +240,34 @@ void GLFont::drawString(const char *text, float x, float y) {
     glUseProgram(0);
 }
 
+vector<string> GLFont::splitText(const char* text) {
+    string textStr = string(text);
+    vector<string> words;
+    int startPos = 0; // start position of current word
+    int endPos = textStr.find(' '); // end position of current word
+
+    while(endPos != string::npos) {
+        words.push_back(textStr.substr(startPos, endPos - startPos + 1));
+        startPos = endPos + 1;
+        endPos = textStr.find(' ', startPos);
+    }
+
+    // Add last word
+    words.push_back(textStr.substr(startPos, std::min(endPos, (int)textStr.size()) - startPos + 1));
+
+    return words;
+}
+
+int GLFont::calcWidth(const char* text) {
+    int width = 0;
+    FontAtlas::Character* chars = _fontAtlas[_curPixSize]->getCharInfo();
+    for(const char* p = text; *p; ++p) {
+        width += chars[*p].advanceX;
+    }
+
+    return width;
+}
+
 void GLFont::setFontFlags(int flags) {
     _flags = flags;
 }
@@ -301,16 +334,12 @@ void GLFont::calculateAlignment(const char* text, float &x) {
         return; // no need to calculate alignment
 
     FT_GlyphSlot slot = _face->glyph;
-    float totalWidth = 0; // total width of the text to render in window space
+    int totalWidth = 0; // total width of the text to render in window space
+    FontAtlas::Character* chars = _fontAtlas[_curPixSize]->getCharInfo();
    
     // Calculate total width
-    for(const char* p = text; *p; ++p) {
-        _error = FT_Load_Char(_face, *p, FT_LOAD_RENDER);
-        if(_error)
-            continue; // skip character
-
-        totalWidth += slot->advance.x >> 6;
-    }
+    for(const char* p = text; *p; ++p)
+        totalWidth += chars[*p].advanceX;
 
     if(_alignment == GLFont::FontFlags::CenterAligned)
         x -= totalWidth / 2.0;

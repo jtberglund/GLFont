@@ -7,6 +7,7 @@
 
 #include <memory> // for use of shared_ptr
 #include <map>
+#include <vector>
 
 #ifndef PI
 #define PI 3.141596
@@ -19,6 +20,8 @@
 #ifndef DEG_TO_RAD
 #define DEG_TO_RAD PI / 180.0
 #endif
+
+using namespace std;
 
 class FontAtlas;
 
@@ -81,7 +84,7 @@ public:
     // Print the specified text on the screen starting at coords x, y
     // NOTE: params x and y should be x and y offsets in **window** coordinates (0, 0 is at the top left corner)
     void drawString(const char *text, float x, float y);
-    void drawString(const char* text, float width, float height, float x, float y);
+    void drawString(const char* text, float x, float y, float width, float height);
 
 private:
     FT_Error _error;
@@ -139,6 +142,10 @@ private:
     void loadShader(char* shaderSource, GLenum shaderType);
     // Calculate offset needed for center- or left-aligned text
     void calculateAlignment(const char* text, float &x);
+    // Split text into words separated by spaces
+    vector<string> splitText(const char* text);
+    // Returns the width (in pixels) of the string, given the current pixel size
+    int calcWidth(const char* text);
 
     void recalculateMVP();
 };
