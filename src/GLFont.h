@@ -84,6 +84,8 @@ public:
     // Print the specified text on the screen starting at coords x, y
     // NOTE: params x and y should be x and y offsets in **window** coordinates (0, 0 is at the top left corner)
     void drawString(const char *text, float x, float y);
+    // Overloaded method: params width and height specify bounding box of the text
+    // - Pass 0 as the value for width and/or height to specify no limit
     void drawString(const char* text, float x, float y, float width, float height);
 
 private:

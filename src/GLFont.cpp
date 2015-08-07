@@ -96,6 +96,10 @@ void GLFont::drawString(const char* text, float x, float y, float width, float h
     if(!_isInitialized)
         throw std::exception("Error: you must first initialize GLFont.");
 
+    // Coordinates passed in should specify where to start drawing from the top left of the text,
+    // but FreeType starts drawing from the bottom-right, therefore move down one line
+    y += _face->size->metrics.height >> 6;
+
     // Break the text into individual words
     vector<string> words = splitText(text);
     
@@ -108,7 +112,7 @@ void GLFont::drawString(const char* text, float x, float y, float width, float h
     for(string word : words) {
         int wordWidth = calcWidth(word.c_str());
 
-        if(wordWidth > widthRemaining) {
+        if(wordWidth > widthRemaining && width) {
             // If we have passed the given width, add this line to our collection and start a new line
             lines.push_back(curLine);
             widthRemaining = width - wordWidth;
@@ -129,7 +133,12 @@ void GLFont::drawString(const char* text, float x, float y, float width, float h
         lines.push_back(curLine);
 
     // Print each line, increasing the y value as we go
+    float startY = y - (_face->size->metrics.height >> 6);
     for(string line : lines) {
+        // If we go past the specified height, stop drawing
+        if(y - startY > height && height)
+            break;
+
         drawString(line.c_str(), x + indent, y);
         y += (_face->size->metrics.height >> 6);
         indent = 0;
