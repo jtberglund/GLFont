@@ -8,35 +8,49 @@ GLFont is a text-rendering library written in C++ for OpenGL 3.3, using FreeType
 4. GLFW - http://www.glfw.org/
 
 ## C++ Quick Start
+```c++
+// Create GLFont object
+GLFont* glfont = new GLFont(".../myFont.ttf", windowWidth, windowHeight);
 
-    // Create GLFont object
-    GLFont* glfont = new GLFont(".../font.ttf", windowWidth, windowHeight);
-    ...
+// Initialize GLFont object - this must be called before rendering text
+glfont->init();
+```  
 
+```c++
+// Optionally, change color, rotate text, scale text, etc.
+glFont->rotate(90, 0, 1, 0); // rotate text 90 degrees on the y axis
+glFont->setColor(0.89, 0.26, 0.3, 0.9);
+```
 
-    // Intialize GLFont object - this must be called before rendering text
-    glfont->init();
+```c++
+// Before rendering,, we can set the alignment, color, or size of the font
+// These options will be in effect for all text render operations
+// until they are changed again
+glfont->setPixelSize(24);
+glfont->setIndentation(50);
+glfont->setAlignment(GLFont::FontAlignment::LeftAligned);
+glfont->setColor()
+```
 
-    // Optionally, change color, rotate text, scale text, etc.
-    glFont->rotate(90, 0, 1, 0); // rotate text 90 degrees on the y axis
-    glFont->setColor(0.89, 0.26, 0.3, 0.9);
-    ...
+```c++
+// Now we do the rendering:
+// Note: xPos and yPos should be in window coords -
+//       this means (0,0) is at the top-left corner
+glfont->drawString("Hello world!", xPos, yPos);
 
+// To render a paragraph, use the overloaded method,
+// which allow you to specify a bounding box
 
-    // In the render loop, render the text
-    // First, we can set the alignment, color, or size of our font object
-    // These options will be in effect until they are changed back
-    glfont->setPixelSize(24);
-    glfont->setAlignment(GLFont::FontAlignment::LeftAligned);
-    glfont->setColor()
+// For example, the following will print a paragraph starting at
+// window coords (100, 100), with a bounding box of 200 x 200
+glfont->drawString("[long paragraph here]", 100, 100, 200, 200);
 
-    // Now we do the rendering:
-    // Note: xPos and yPos should be in window coords -
-             this means (0,0) is at the top-left corner
-    glfont->glprint("Hello world!", xPos, yPos);
-    ...
+// Set font options with the setFontFlags() method
+glfont->setFontFlags(FontFlags::WordWrap | FontFlags::Indented);
+```
 
-
-    // Note: Whenever the window is resized, you should update the
-    //       window size of your GLFont object
-    glfont->setWindowSize(windowWidth, windowSize);
+```c++
+// Note: Whenever the window is resized, you should update the
+//       window size of your GLFont object
+glfont->setWindowSize(windowWidth, windowSize);
+```
