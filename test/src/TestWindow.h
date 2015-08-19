@@ -1,8 +1,16 @@
 #pragma once
 
 #include "GLWindow.h"
+#include <memory>
+#include <vector>
+
+using std::shared_ptr;
+using std::vector;
 
 class GLFont;
+class FTLabel;
+
+typedef shared_ptr<FTLabel> Label;
 
 class TestWindow : public GLWindow {
 public:
@@ -27,6 +35,11 @@ protected:
 
 private:
     GLuint _vbo;
-    GLFont* _font;
+    shared_ptr<GLFont> _font;
+    vector<Label> _labels;
+
+    Label lblHello;
+    Label lblParagraph;
+
 };
 

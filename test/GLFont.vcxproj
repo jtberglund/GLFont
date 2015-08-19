@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\FontAtlas.cpp" />
+    <ClCompile Include="..\src\FTLabel.cpp" />
     <ClCompile Include="..\src\GLFont.cpp" />
     <ClCompile Include="include\GLUtils\GLUtils.cpp" />
     <ClCompile Include="include\GLWindow\GLWindow.cpp" />
@@ -20,6 +21,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\FontAtlas.h" />
+    <ClInclude Include="..\src\FTLabel.h" />
     <ClInclude Include="..\src\GLFont.h" />
     <ClInclude Include="src\TestWindow.h" />
   </ItemGroup>

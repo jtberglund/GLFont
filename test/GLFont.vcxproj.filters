@@ -42,6 +42,9 @@
     <ClCompile Include="..\src\FontAtlas.cpp">
       <Filter>Source Files\GLFont</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\FTLabel.cpp">
+      <Filter>Source Files\GLFont</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\GLFont.cpp">
       <Filter>Source Files\GLFont</Filter>
     </ClCompile>
@@ -51,6 +54,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\FontAtlas.h">
+      <Filter>Header Files\GLFont</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\FTLabel.h">
       <Filter>Header Files\GLFont</Filter>
     </ClInclude>
     <ClInclude Include="..\src\GLFont.h">
