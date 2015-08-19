@@ -5,7 +5,7 @@ GLFont is a text-rendering library written in C++ for OpenGL 3.3, using FreeType
 1. Freetype - http://freetype.org/
 2. GLM - http://glm.g-truc.net/0.9.4/index.html
 3. GLEW - http://glew.sourceforge.net/build.html
-4. GLFW - http://www.glfw.org/
+4. GLFW - http://www.glfw.org/ (This is only necessary for the included test project. You can still use GLFont with your own application without GLFW)
 
 ## C++ Quick Start
 
