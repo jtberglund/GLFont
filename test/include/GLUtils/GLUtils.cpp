@@ -43,7 +43,7 @@ void GLUtils::loadShader(char* shaderSource, GLenum shaderType, GLuint &programI
     // Check shader
     glGetShaderiv(shaderId, GL_COMPILE_STATUS, &result);
     glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &infoLogLength);
-    std::vector<char> errorMessage(infoLogLength);
+    std::vector<char> errorMessage(std::max(infoLogLength, int(1)));
     glGetShaderInfoLog(shaderId, infoLogLength, NULL, &errorMessage[0]);
     fprintf(stdout, "%s\n", &errorMessage[0]);
 
