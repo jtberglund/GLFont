@@ -9,8 +9,8 @@
 #include <algorithm>
 
 // GLM
-#include "glm\gtc\type_ptr.hpp"
-#include "glm\gtx\transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+#include "glm/gtx/transform.hpp"
 
 FTLabel::FTLabel(shared_ptr<GLFont> ftFace, int windowWidth, int windowHeight) :
   _isInitialized(false),

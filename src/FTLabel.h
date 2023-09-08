@@ -1,12 +1,13 @@
 #pragma once
 
-#include "GL\glew.h"
+#include "GL/glew.h"
 #include "ft2build.h"
 #include FT_FREETYPE_H
-#include "glm\glm.hpp"
+#include "glm/glm.hpp"
 
 #include "GLFont.h"
 
+#include <string>
 #include <memory> // for use of shared_ptr
 #include <map>
 #include <vector>

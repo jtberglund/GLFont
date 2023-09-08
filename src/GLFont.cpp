@@ -1,12 +1,14 @@
 #include "GLFont.h"
 #include <fstream>
+#include <exception>
+
 
 GLFont::GLFont(const char* fontFile) {
     // Initialize FreeType
 
     _error = FT_Init_FreeType(&_ft);
     if(_error) {
-        throw std::exception("Failed to initialize FreeType");
+        throw std::runtime_error("Failed to initialize FreeType");
     }
     setFontFile(fontFile);
 }
@@ -23,10 +25,10 @@ void GLFont::setFontFile(const char* fontFile) {
                          &_face);   // font face handle
 
     if(_error == FT_Err_Unknown_File_Format) {
-        throw std::exception("Failed to open font: unknown font format");
+        throw std::runtime_error("Failed to open font: unknown font format");
     }
     else if(_error) {
-        throw std::exception("Failed to open font");
+        throw std::runtime_error("Failed to open font");
     }
 }
 
