@@ -1,6 +1,7 @@
 #pragma once
 
-#include "GL\glew.h"
+
+#include "glad/gl.h"
 
 class GLUtils {
 public:

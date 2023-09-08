@@ -326,13 +326,13 @@ int FTLabel::calcWidth(const char* text) {
     return width;
 }
 
-void FTLabel::setText(char* text) {
+void FTLabel::setText(const char* text) {
     _text = text;
 
     recalculateVertices(_text, _x, _y, _width, _height);
 }
 
-void FTLabel::setText(string text) {
+void FTLabel::setText(const string& text) {
     setText(text.c_str());
 }
 
