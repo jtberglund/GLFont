@@ -1,12 +1,13 @@
 #pragma once
 
-#include "GL\glew.h"
+#include "glad/gl.h"
 #include "ft2build.h"
 #include FT_FREETYPE_H
-#include "glm\glm.hpp"
+#include "glm/glm.hpp"
 
 #include "GLFont.h"
 
+#include <string>
 #include <memory> // for use of shared_ptr
 #include <map>
 #include <vector>
@@ -56,8 +57,8 @@ public:
     void scale(float x, float y, float z);
 
     // Setters
-    void setText(char* text);
-    void setText(string text);
+    void setText(const char* text);
+    void setText(const string& text);
     void setPosition(float x, float y);
     void setSize(int width, int height);
     void setFont(shared_ptr<GLFont> ftFace);
@@ -117,7 +118,7 @@ private:
     GLint _uniformTextColorHandle;
     GLint _uniformMVPHandle;
 
-    char* _text;
+    const char* _text;
 
     vector<Point> _coords;
 
@@ -163,9 +164,9 @@ private:
     
     // Used for debugging opengl only
     inline void getError() {
-        const GLubyte* error = gluGetString(glGetError());
+      /*  const GLubyte* error = gluGetString(glGetError());
         if(error != GL_NO_ERROR)
-            printf("----------------------------- %i ----------------------", error);
+            printf("----------------------------- %i ----------------------", error);*/
     }
 
     // Compile shader from file
